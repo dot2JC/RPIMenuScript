@@ -101,13 +101,13 @@ function networkmenu{
   read nmchoice
   case "$nmchoice" in
     1) # RSA keys
-      pause
+      rsamenu
     ;;
     2) # TCP/IP
-      pause
+      tcpipmenu
     ;;
     3) # Remote
-      pause
+      remotemenu
     ;;
     b) # WHAT WE DO HERE IS GO BACK BACK BACK
       mainmenu
@@ -133,7 +133,7 @@ function securitymenu{
   read smchoice
   case "$smchoice" in
     1) # tcpdump
-      pause
+      tcpdumpmenu
     ;;
     2) # selinux
       pause
@@ -213,17 +213,33 @@ function tcpipmenu{
       pause
     ;;
     6) # Restart network
+      clear
+      version=$(cat /etc/centos-release | awk '/release/ {print $4}')
+      if [ $version = '7.6.1810' ] # CentOS 7
+      then
+        systemctl restart network.service
+      else # CentOS 6
+        network restart
+      fi
       pause
     ;;
     7) # Ping gateway
+      clear
+      gateway=$(ip route show default | awk '/default/ {print $3}')
+      echo "Beginning Ping to Gateway..."
+      ping -c 5 $gateway
       pause
     ;;
     8) # Ping DNS
+      clear
+      dns=$(cat /etc/resolv.conf | grep 'nameserver')
+      echo "Beginning Ping to DNS..."
+      ping -c 5 $dns
       pause
     ;;
     9) # Ping Google
       clear
-      echo "Beginning Ping to 'www.google.com'"
+      echo "Beginning Ping to 'www.google.com'..."
       ping -c 5 www.google.com
       pause
     ;;
@@ -274,84 +290,55 @@ function remotemenu{
   esac
   remotemenu
 }
-###############################################################################
-#                        REWRITE AS FUNCTIONS FUUUUCK                         #
-###############################################################################
-  elif [ $nmchoice -eq 3 ] # Remote
-  then
 
-    if [ $rmchoice -eq 1 ] # Select remote
-    then
-      clear
-    elif [ $rmchoice -eq 2 ] # SSH to remote
-    then
-      clear
-    elif [ $rmchoice -eq 3 ] # Copy menu to remote
-    then
-      clear
-    elif [ $rmchoice -eq 4 ] # SSH to remote and execute menu
-    then
-      clear
-    else
-      echo "ERROR! Try again. (Remote Menu)"
-    fi
-  else
-    echo "ERROR! Try again. (Network Menu)"
-  fi
-elif [ $mmchoice -eq 3 ] # Security
-then
-
-  if [ $smchoice -eq 1 ] # tcpdump
-  then
-    clear
-    echo "### TCPDump Menu ###"
-    echo "--------------------"
-    echo ""
-    echo "1) Start tcpdump on remote in the background (tmux)"
-    echo "2) Copy dump file from remote"
-    echo "3) Select dump file"
-    echo "4) Show all arp"
-    echo "5) Show all icmp"
-    echo "6) Show all tcp"
-    echo "7) Show all udp"
-    echo "8) Show only icmp echo request and reply"
-    echo ""
-    echo "Please enter a number (1-8):"
-    read tcpdmchoice
-    if [ $tcpdmchoice -eq 1 ] # Start tcpdump on remote in the background
-    then
-      clear
-    elif [ $tcpdmchoice -eq 2 ] # Copy dump file from remote
-    then
-      clear
-    elif [ $tcpdmchoice -eq 3 ] # Select dump file
-    then
-      clear
-    elif [ $tcpdmchoice -eq 4 ] # Show all arp
-    then
-      clear
-    elif [ $tcpdmchoice -eq 5 ] # Show all icmp
-    then
-      clear
-    elif [ $tcpdmchoice -eq 6 ] # Show all tcp
-    then
-      clear
-    elif [ $tcpdmchoice -eq 7 ] # Show all udp
-    then
-      clear
-    elif [ $tcpdmchoice -eq 8 ] # Show only icmp echo request and reply
-    then
-      clear
-    else
-      echo "ERROR! Try again. (TCP Dump Menu)"
-    fi
-  elif [ $smchoice -eq 2 ] # selinux
-  then
-    clear
-  else
-    echo "ERROR! Try again. (Security Menu)"
-  fi
-else
-	echo "ERROR! Try Again. (Main Menu)"
-fi
+function tcpdumpmenu{
+  clear
+  echo "### TCPDump Menu ###"
+  echo "--------------------"
+  echo ""
+  echo "1) Start tcpdump on remote in the background (tmux)"
+  echo "2) Copy dump file from remote"
+  echo "3) Select dump file"
+  echo "4) Show all arp"
+  echo "5) Show all icmp"
+  echo "6) Show all tcp"
+  echo "7) Show all udp"
+  echo "8) Show only icmp echo request and reply"
+  echo "b) * GO BACK *"
+  echo ""
+  echo "Please enter a number (1-8):"
+  read tcpdmchoice
+  case "$tcpdumpmchoice" in
+    1) # Start tcpdump on remote in the background (tmux)
+      pause
+    ;;
+    2) # Copy dump file from remote
+      pause
+    ;;
+    3) # Select dump file
+      pause
+    ;;
+    4) # Show all arp
+      pause
+    ;;
+    5) # Show all icmp
+      pause
+    ;;
+    6) # Show all tcp
+      pause
+    ;;
+    7) # Show all udp
+      pause
+    ;;
+    8) # Show only icmp echo request and reply
+      pause
+    ;;
+    b) # WHAT WE DO HERE IS GO BACK BACK BACK
+      securitymenu
+      ;;
+    *)
+      echo "Unknown command"
+      pause
+    ;;
+}
 mainmenu
