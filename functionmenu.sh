@@ -1,28 +1,50 @@
 #!/bin/bash
 shopt -s -o nounset
+lastmenu=""
 [ "$(whoami)" != "root" ] && exec sudo -- "$0" "$@"
 
-function pause{
-  echo "Press ENTER to continue"
-  read mmchoice
+function pause {
+  read -p "Press ENTER to continue... " choice
+  lastmenu
 }
 
-function error{
-  echo "Error!"
-  echo $errorcode
+function error {
+  echo -e "### Error, $choice is an unknown input.  ###\n"
+  pause
 }
 
-function mainmenu{
+function lastmenu {
+  if [ $lastmenu = 'adminmenu' ]; then
+    adminmenu
+  elif [ $lastmenu = 'networkmenu' ]; then
+    networkmenu
+  elif [ $lastmenu = 'securitymenu' ]; then
+    securitymenu
+  elif [ $lastmenu = 'configchangesmenu' ]; then
+    configchangesmenu
+  elif [ $lastmenu = 'rsamenu' ]; then
+    rsamenu
+  elif [ $lastmenu = 'tcpipmenu' ]; then
+    tcpipmenu
+  elif [ $lastmenu = 'remotemenu' ]; then
+    remotemenu
+  elif [ $lastmenu = 'tcpdumpmenu' ]; then
+    tcpdumpmenu
+  else
+    mainmenu
+  fi
+  lastmenu
+}
+
+function mainmenu {
   clear
+  lastmenu='mainmenu'
   echo "### Main Menu ###"
   echo "-----------------"
-  echo ""
   echo "1) Admin"
   echo "2) Networking"
-  echo "3) Security"
-  echo ""
-  echo "Please enter a number (1-3):"
-  read mmchoice
+  echo -e "3) Security\n"
+  read -p "Please enter a number (1-3): " mmchoice
   case "$mmchoice" in
     1)  # Admin Menu
       adminmenu
@@ -33,28 +55,28 @@ function mainmenu{
     3) # Security Menu
       securitymenu
     ;;
+    q)
+      exit
+    ;;
     *)
-      echo "Unknown command"
+      error
     ;;
   esac
   mainmenu
 }
 
-function adminmenu{
+function adminmenu {
   clear
+  lastmenu='adminmenu'
   echo "### Admin Menu ###"
   echo "------------------"
-  echo ""
   echo "1) Backup MBR"
   echo "2) Show log file"
-  echo "3) Show my config changes"
-  echo "4) Show all config changes"
-  echo "5) Copy CentOS 7 to SD card (RPI)"
-  echo "6) Copy CentOS 8 to USB stick"
-  echo "b) * GO BACK *"
-  echo ""
-  echo "Please enter a number (1-7):"
-  read amchoice
+  echo "3) Show config changes menu"
+  echo "3) Copy CentOS 7 to SD card (RPI)"
+  echo "4) Copy CentOS 8 to USB stick"
+  echo -e "b) * GO BACK *\n"
+  read -p  "Please enter a number (1-7): " amchoice
   case "$amchoice" in
     1) # Backup MBR
       pause
@@ -62,43 +84,35 @@ function adminmenu{
     2) # Show log file
       pause
     ;;
-    3) # show my config changes
-      find / -type f -exec grep -n -A2 '__.2JC__' {} \; -print
+    3) # Show config changes menu
+      configchangesmenu
+    ;;
+    4) # Copy CentOS 7 to SD card (RPI)
       pause
     ;;
-    4) # show all config changes
-      find / -type f -exec grep -n -A2 '__ALL__' {} \; -print
-      pause
-    ;;
-    5) # Copy CentOS 7 to SD card (RPI)
-      pause
-    ;;
-    6) # Copy CentOS 8 to USB stick
+    5) # Copy CentOS 8 to USB stick
       pause
     ;;
     b) # WHAT WE DO HERE IS GO BACK BACK BACK
       mainmenu
     ;;
     *)
-      echo "Unknown command"
-      pause
+      error
     ;;
   esac
   adminmenu
 }
 
-function networkmenu{
+function networkmenu {
   clear
+  lastmenu='networkmenu'
   echo "### Networking Menu ###"
   echo "-----------------------"
-  echo ""
   echo "1) RSA keys"
   echo "2) TCP/IP"
   echo "3) Remote"
-  echo "b) * GO BACK *"
-  echo ""
-  echo "Please enter a number (1-3):"
-  read nmchoice
+  echo -e "b) * GO BACK *\n"
+  read -p "Please enter a number (1-3): " nmchoice
   case "$nmchoice" in
     1) # RSA keys
       rsamenu
@@ -113,24 +127,21 @@ function networkmenu{
       mainmenu
     ;;
     *)
-      echo "Unknown command"
-      pause
+      error
     ;;
   esac
   networkmenu
 }
 
-function securitymenu{
+function securitymenu {
   clear
+  lastmenu='securitymenu'
   echo "### Security Menu ###"
   echo "---------------------"
-  echo ""
   echo "1) tcpdump"
   echo "2) selinux"
-  echo "b) * GO BACK *"
-  echo ""
-  echo "Please enter a number (1-2):"
-  read smchoice
+  echo -e "b) * GO BACK *\n"
+  read -p "Please enter a number (1-2): " smchoice
   case "$smchoice" in
     1) # tcpdump
       tcpdumpmenu
@@ -142,24 +153,65 @@ function securitymenu{
       mainmenu
     ;;
     *)
-      echo "Unknown command"
-      pause
+      error
     ;;
   esac
   securitymenu
 }
 
-function rsamenu{
+function configchangesmenu {
   clear
+  lastmenu='configchangesmenu'
+  echo "### Menu Configuration Changes ###"
+  echo "----------------------------------"
+  echo "1) Show my configuration changes"
+  echo "2) Show all configuration changes"
+  echo "3) Show other configuration changes"
+  echo "4) Backup all configuration changes"
+  echo "5) Show all configuration changes since last backup"
+  echo -e "b) * GO BACK *\n"
+  read -p "Please enter a number (1-5): " configchangesmchoice
+  case "$configchangesmchoice" in
+    1) # show my config changes
+      clear
+      echo "Checking for configuration changes by: '__.2JC__'"
+      find / -type f -exec grep -n -A2 '__.2JC__' {} \; -print 2> /dev/null
+      pause
+    ;;
+    2) # show all config changes
+      find / -type f -exec grep -n -A2 '__ALL__' {} \; -print 2> /dev/null
+      pause
+    ;;
+    3) # show other config changes
+
+      pause
+    ;;
+    4) # backup all config changes
+
+      pause
+    ;;
+    5) # show all config changes since last backup
+
+      pause
+    ;;
+    b)
+      adminmenu
+    ;;
+    *)
+      error
+    ;;
+  esac
+  configchangesmenu
+}
+function rsamenu {
+  clear
+  lastmenu='rsamenu'
   echo "### RSA Keys Menu ###"
   echo "---------------------"
-  echo ""
   echo "1) Create key pair"
   echo "2) Copy public key to remote host"
-  echo "b) * GO BACK *"
-  echo ""
-  echo "Please enter a number (1-2):"
-  read rsamchoice
+  echo -e "b) * GO BACK *\n"
+  read -p "Please enter a number (1-2): " rsamchoice
   case "$rsamchoice" in
     1) # Create key pair
       pause
@@ -178,11 +230,11 @@ function rsamenu{
   rsamenu
 }
 
-function tcpipmenu{
+function tcpipmenu {
   clear
+  lastmenu='tcpipmenu'
   echo "### TCP/IP Menu ###"
   echo "-------------------"
-  echo ""
   echo "1) Configure as DHCP"
   echo "2) Configure as static"
   echo "3) Edit ethernet settings"
@@ -192,9 +244,8 @@ function tcpipmenu{
   echo "7) Ping gateway"
   echo "8) Ping DNS"
   echo "9) Ping google"
-  echo "b) * GO BACK *"
-  echo ""
-  echo "Please enter a number (1-9):"
+  echo -e "b) * GO BACK *\n"
+  read -p "Please enter a number (1-9): " tcpipmchoice
   read tcpipmchoice
   case "$tcpipmchoice" in
     1) # Configure as DHCP
@@ -214,60 +265,60 @@ function tcpipmenu{
     ;;
     6) # Restart network
       clear
-      version=$(cat /etc/centos-release | awk '/release/ {print $4}')
-      if [ $version = '7.6.1810' ] # CentOS 7
-      then
+      version=$(lsb_release -a | grep 'Release:')
+      if [ $version:9:1 == '8' ]; then
+        restart NetworkManager.service
+      elif [ $version:9:1 == '7' ]; then # CentOS 7
         systemctl restart network.service
-      else # CentOS 6
-        network restart
+      elif [ $version:9:1 == '6' ]; then # CentOS 6
+        service network restart
+      else
+        echo "You're not running CentOS, you silly goose!"
       fi
       pause
     ;;
     7) # Ping gateway
       clear
       gateway=$(ip route show default | awk '/default/ {print $3}')
-      echo "Beginning Ping to Gateway..."
+      echo -e "Beginning Ping to Gateway... \n"
       ping -c 5 $gateway
       pause
     ;;
     8) # Ping DNS
       clear
       dns=$(cat /etc/resolv.conf | grep 'nameserver')
-      echo "Beginning Ping to DNS..."
+      echo -e "Beginning Ping to DNS... \n"
       ping -c 5 $dns
       pause
     ;;
     9) # Ping Google
       clear
-      echo "Beginning Ping to 'www.google.com'..."
-      ping -c 5 www.google.com
+      echo -e "Beginning Ping to 'google.com'... \n"
+      ping -c 5 google.com
       pause
     ;;
     b) # WHAT WE DO HERE IS GO BACK BACK BACK
       networkmenu
     ;;
     *)
-      echo "Unknown command"
-      pause
+      error
     ;;
   esac
   tcpipmenu
 }
 
-function remotemenu{
+function remotemenu {
   clear
+  lastmenu='remotemenu'
   echo "### Remote Menu ###"
   echo "-------------------"
-  echo ""
   echo "1) Select remote"
   echo "2) SSH to remote"
   echo "3) Copy menu to remote"
   echo "4) SSH to remote and execute menu"
-  echo "b) * GO BACK *"
-  echo ""
-  echo "Please enter a number (1-4):"
-  read rmchoice
-  case "$rmmchoice" in
+  echo -e "b) * GO BACK *\n"
+  read -p "Please enter a number (1-4): " rmchoice
+  case "$rmchoice" in
     1) # Select remote
       pause
     ;;
@@ -284,18 +335,17 @@ function remotemenu{
       networkmenu
       ;;
     *)
-      echo "Unknown command"
-      pause
+      error
     ;;
   esac
   remotemenu
 }
 
-function tcpdumpmenu{
+function tcpdumpmenu {
   clear
+  lastmenu='tcpdumpmenu'
   echo "### TCPDump Menu ###"
   echo "--------------------"
-  echo ""
   echo "1) Start tcpdump on remote in the background (tmux)"
   echo "2) Copy dump file from remote"
   echo "3) Select dump file"
@@ -304,10 +354,8 @@ function tcpdumpmenu{
   echo "6) Show all tcp"
   echo "7) Show all udp"
   echo "8) Show only icmp echo request and reply"
-  echo "b) * GO BACK *"
-  echo ""
-  echo "Please enter a number (1-8):"
-  read tcpdmchoice
+  echo -e "b) * GO BACK *\n"
+  read -p "Please enter a number (1-8): " tcpdumpmchoice
   case "$tcpdumpmchoice" in
     1) # Start tcpdump on remote in the background (tmux)
       pause
@@ -335,10 +383,12 @@ function tcpdumpmenu{
     ;;
     b) # WHAT WE DO HERE IS GO BACK BACK BACK
       securitymenu
-      ;;
-    *)
-      echo "Unknown command"
-      pause
     ;;
+    *)
+      error
+    ;;
+  esac
+  tcpdumpmenu
 }
+
 mainmenu
