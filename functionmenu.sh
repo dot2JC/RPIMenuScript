@@ -79,6 +79,10 @@ function adminmenu {
   read -p  "Please enter a number (1-7): " amchoice
   case "$amchoice" in
     1) # Backup MBR
+      clear
+      read -p "Where would you like to copy it to? (ie /home/USERNAME): " mbrdest
+      date=$(date +%m-%d-%y_%R)
+      dd if=/dev/sda of=${mbrdest}/backup_${date}.bin bs=512 count=1
       pause
     ;;
     2) # Show log file
